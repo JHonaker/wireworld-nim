@@ -50,17 +50,24 @@ proc newState[N](world: World[N], x, y: int): State =
       else:
         result = wire
 
-proc process[N](world: var World[N]) =
+proc process*[N](world: var World[N]) =
+  # Updates the entire world according to the automata rules.
+
+  # We must copy world first though, otherwise we'll get incorrect updating
+  var newworld = world
   for x in 0..<N:
     for y in 0..<N:
-      world.get(x, y) = world.newState(x, y)
+      # Update the new world 
+      newworld.get(x, y) = world.newState(x, y)
+  # Update the original with the new states
+  world = newworld
 
 if isMainModule:
   var world: World[3] = [[wire, ground, head],
                          [wire, ground, ground],
                          [tail, head, head]]
 
-  for _ in 1..5:
+  for _ in 1..10:
     echo world
     world.process
   echo world
