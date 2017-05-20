@@ -1,16 +1,10 @@
 type
-  State = enum
+  State* = enum
     ground, wire, head, tail
 
-  Pos = tuple
-    x, y: int
+  World*[N: static[int]] = array[N, array[N, State]]
 
-  Neighbor = enum
-    nw, n, ne, e, se, s, sw, w
-
-  World[N: static[int]] = array[N, array[N, State]]
-
-proc `$`[N](world: World[N]): string =
+proc `$`*[N](world: World[N]): string =
   result = ""
   for row in world:
     for col in row:
@@ -21,7 +15,7 @@ proc `$`[N](world: World[N]): string =
         of tail: result.add("=")
     result.add("\n")
 
-template get[N](world: World[N], x, y: int): State =
+template get*[N](world: World[N], x, y: int): State =
   world[y][x]
 
 proc neighbors[N](world: World[N], x, y: int): array[State, int] =
@@ -33,7 +27,14 @@ proc neighbors[N](world: World[N], x, y: int): array[State, int] =
         result[world.get(i, j)] += 1
 
 proc newState[N](world: World[N], x, y: int): State =
-  # Return the new state for the cell after its update
+  # Returns the new state for the cell after its update
+  #
+  # The update algorithm is:
+  #   Ground -> Ground
+  #   Head -> Tail
+  #   Tail -> Wire
+  #   Wire -> Head if '1 or 2 neighbors are head' else Wire
+
   let
     current = world.get(x, y)
     neighbors = world.neighbors(x, y)
