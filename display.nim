@@ -1,23 +1,55 @@
 import sdl2
+import wireworld
+import times
+
+const
+  TicksPerSecond = 10
+  TileSize = 10
+  WindowSize = WorldSize * TileSize
+  black: Color = (0'u8, 0'u8, 0'u8, 255'u8)
 
 type SDLException = object of Exception
 
 type
-  TileType = enum
-    ground, wire, head, tail
-
   Input {.pure.} = enum none, reset, exit, groundmode, wiremode, headmode, tailmode, place
+
+  DrawMode = enum
+    GroundMode,
+    WireMode,
+    HeadMode,
+    TailMode
 
   Game = ref object
     inputs: array[Input, bool]
     mx, my: int
+    tx, ty: int
     renderer: RendererPtr
+    world: World
+    drawmode: DrawMode
+    dirty: seq[bool]
 
 proc newGame(renderer: RendererPtr): Game =
   new result
+
+  result.world = newWorld()
+
+  result.world.get(0, 0) = wire
+  result.world.get(2, 0) = head
+  result.world.get(0, 1) = wire
+  result.world.get(0, 2) = tail
+  result.world.get(1, 2) = head
+  result.world.get(2, 2) = head
+
+  newSeq(result.dirty, WorldSize * WorldSize)
+  for x in 0..<WorldSize:
+    for y in 0..<WorldSize:
+      result.dirty.get(x, y) = true
+
+  result.drawmode = WireMode
+
   result.renderer = renderer
 
-proc color(tile: TileType): Color =
+proc color(tile: State): Color =
   case tile:
     of ground:
       (r: 28'u8, g: 20'u8, b: 14'u8, a: 255'u8)
@@ -27,6 +59,8 @@ proc color(tile: TileType): Color =
       (r: 43'u8, g: 145'u8, b: 255'u8, a: 255'u8)
     of tail:
       (r: 255'u8, g: 57'u8, b: 43'u8, a: 255'u8)
+
+proc screenToWorld(x, y: int): tuple[x, y: int] = (x div TileSize, y div TileSize)
 
 proc keyToInput(key: Scancode): Input =
   case key:
@@ -51,6 +85,8 @@ proc handleInput(game: Game) =
       of MouseMotion:
         game.mx = event.motion.x
         game.my = event.motion.y
+        game.tx = event.motion.x div TileSize
+        game.ty = event.motion.y div TileSize
       of MouseButtonDown:
         if event.button.button == BUTTON_LMASK:
           game.inputs[Input.place] = true
@@ -60,14 +96,61 @@ proc handleInput(game: Game) =
       else:
         discard
 
+proc processMode(game: var Game) =
+  if game.inputs[Input.groundmode]:
+    game.drawmode = GroundMode
+    return
+  elif game.inputs[Input.wiremode]:
+    game.drawmode = WireMode
+    return
+  elif game.inputs[Input.headmode]:
+    game.drawmode = HeadMode
+    return
+  elif game.inputs[Input.tailmode]:
+    game.drawmode = TailMode
+    return
+  elif game.inputs[Input.reset]:
+    game = newGame(game.renderer)
+    return
+
+proc processClicks(game: var Game) =
+  if game.inputs[Input.place]:
+    let newstate = case game.drawmode:
+                 of GroundMode: ground
+                 of WireMode: wire
+                 of HeadMode: head
+                 of TailMode: tail
+
+    game.world.get(game.tx, game.ty) = newstate
 
 template sdlFailIf(cond: typed, reason: string) =
   if cond:
     raise SDLException.newException(reason & ", SDLError: " & $getError())
 
+proc renderTile(game: Game, x, y: int) =
+  let
+    tileState = game.world.get(x, y)
+    tileColor = tileState.color
+  var tileRect: Rect = (x: cint(x * TileSize), y: cint(y * TileSize), w: cint(TileSize), h: cint(TileSize))
+
+  # Draw the tile background
+  game.renderer.setDrawColor(tileColor)
+  game.renderer.fillRect(tileRect)
+  # Draw the outline
+  game.renderer.setDrawColor(black)
+  game.renderer.drawRect(tileRect)
+
+proc renderWorld(game: Game) =
+  for x in 0..<WorldSize:
+    for y in 0..<WorldSize:
+      game.renderTile(x, y)
+
 proc render(game: Game) =
-  game.renderer.clear()
-  game.renderer.present()
+  game.renderer.clear
+  game.renderWorld
+  game.renderer.present
+
+proc processWorld(game: Game) = game.world.process
 
 proc main =
   sdlFailIf(not sdl2.init(INIT_VIDEO or INIT_TIMER or INIT_EVENTS)):
@@ -82,7 +165,7 @@ proc main =
   let window = createWindow(title = "Wireworld",
                             x = SDL_WINDOWPOS_CENTERED,
                             y = SDL_WINDOWPOS_CENTERED,
-                            w = 720, h = 720,
+                            w = WindowSize, h = WindowSize,
                                 flags = SDL_WINDOW_SHOWN)
 
   sdlFailIf window.isNil: "Window could not be created."
@@ -94,13 +177,23 @@ proc main =
   sdlFailIf renderer.isNil: "Renderer could not be created."
 
   # Setting the default color
-  renderer.setDrawColor(r = 28, g = 20, b = 14)
+  renderer.setDrawColor(ground.color)
 
-  var game = newGame(renderer)
+  var
+    startTime = epochTime()
+    lastTick = 0
+    game = newGame(renderer)
+
   # Game Loop
   while not game.inputs[Input.exit]:
-    game.handleInput()
     game.render()
+    game.handleInput()
+    game.processMode()
+    game.processClicks()
+    let newTick = int((epochTime() - startTime) * TicksPerSecond)
+    for tick in lastTick+1 .. newTick:
+        game.processWorld()
+    lastTick = newTick
 
 if isMainModule:
   main()
