@@ -4,7 +4,7 @@ type
 
   World* = seq[State]
 
-const WorldSize = 75
+const WorldSize* = 75
 
 template get*[T](collection: openarray[T], x, y: int): T =
   collection[x + WorldSize * y]
