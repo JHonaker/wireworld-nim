@@ -11,7 +11,7 @@ const
 type SDLException = object of Exception
 
 type
-  Input {.pure.} = enum none, reset, exit, groundmode, wiremode, headmode, tailmode, place
+  Input {.pure.} = enum none, reset, exit, groundmode, wiremode, headmode, tailmode, place, pauseplay
 
   DrawMode = enum
     GroundMode,
@@ -26,6 +26,7 @@ type
     renderer: RendererPtr
     world: World
     drawmode: DrawMode
+    paused: bool
     dirty: seq[bool]
 
 proc newGame(renderer: RendererPtr): Game =
@@ -46,6 +47,8 @@ proc newGame(renderer: RendererPtr): Game =
       result.dirty.get(x, y) = true
 
   result.drawmode = WireMode
+
+  result.paused = false
 
   result.renderer = renderer
 
@@ -70,6 +73,7 @@ proc keyToInput(key: Scancode): Input =
     of SDL_SCANCODE_D: Input.headmode
     of SDL_SCANCODE_F: Input.tailmode
     of SDL_SCANCODE_R: Input.reset
+    of SDL_SCANCODE_P: Input.pauseplay
     else: Input.none
 
 proc handleInput(game: Game) =
@@ -97,7 +101,10 @@ proc handleInput(game: Game) =
         discard
 
 proc processMode(game: var Game) =
-  if game.inputs[Input.groundmode]:
+  if game.inputs[Input.pauseplay]:
+    game.paused = not game.paused
+    return
+  elif game.inputs[Input.groundmode]:
     game.drawmode = GroundMode
     return
   elif game.inputs[Input.wiremode]:
@@ -191,7 +198,8 @@ proc main =
     game.processMode()
     game.processClicks()
     let newTick = int((epochTime() - startTime) * TicksPerSecond)
-    for tick in lastTick+1 .. newTick:
+    if not game.paused:
+      for tick in lastTick+1 .. newTick:
         game.processWorld()
     lastTick = newTick
 
