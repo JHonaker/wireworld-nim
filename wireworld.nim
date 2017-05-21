@@ -6,8 +6,8 @@ type
 
 const WorldSize = 75
 
-template get*(world: World, x, y: int): State =
-  world[x + WorldSize * y]
+template get*[T](collection: openarray[T], x, y: int): T =
+  collection[x + WorldSize * y]
 
 proc newWorld*: World =
   newSeq(result, WorldSize * WorldSize)
