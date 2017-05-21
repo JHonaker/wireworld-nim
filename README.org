@@ -2,7 +2,7 @@
 
   [[./wireworld-nim.gif]]
 
-  Everyone knows the classic example of cellular automata, Conway's Game of Life. Instead of rehashing an implementation of that, I wanted to build something just a little bit different while learning the [[www.nim-lang.org][Nim language]].
+  Everyone knows the classic example of cellular automata, Conway's Game of Life. Instead of rehashing an implementation of that, I wanted to build something just a little bit different while learning the [[http://www.nim-lang.org][Nim language]].
 
   I decided to implement another type of cellular automata, [[https://en.wikipedia.org/wiki/Wireworld][Wireworld]], first conceived by Brian Silverman in 1987. The code for this could easily be modified to produce Conway's Game of Life by adjusting the `State` type and the `process(world: ref World)` procedure.
 
