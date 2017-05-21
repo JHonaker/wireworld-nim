@@ -1,0 +1,54 @@
+* Wireworld
+
+  [[./wireworld-nim.gif]]
+
+  Everyone knows the classic example of cellular automata, Conway's Game of Life. Instead of rehashing an implementation of that, I wanted to build something just a little bit different while learning the [[www.nim-lang.org][Nim language]].
+
+  I decided to implement another type of cellular automata, [[https://en.wikipedia.org/wiki/Wireworld][Wireworld]], first conceived by Brian Silverman in 1987. The code for this could easily be modified to produce Conway's Game of Life by adjusting the `State` type and the `process(world: ref World)` procedure.
+
+  Build the project from source by typing `nim c display.nim` into your terminal.
+
+  Run the project by calling `./display` in the appropriate directory.
+
+** Description
+
+  This automata simulates a simple abstraction of electricity.
+
+  It has four states:
+  - Ground
+  - Wire
+  - Electron head
+  - Electron tail
+
+  The propagation rules are:
+  - Ground -> Ground
+  - Electron head -> Electron tail
+  - Electron tail -> Wire
+  - If Wire has exactly 1 or 2 neighbors == Electron Head:
+    - Wire -> Electron Head
+  - Otherwise:
+    - Wire -> Wire
+
+** Implementation
+
+   This implementation is built in Nim using the SDL 2 library.
+
+*** Features and Instructions
+
+    Clicking on the map changes the tile under the cursor to the current drawmode's type.
+
+    There are four drawing modes, one for each state:
+    - `A`: Ground mode
+    - `S`: Wire mode
+    - `D`: Electron head mode
+    - `F`: Electron tail mode
+    
+    In addition there are a few other keybindings:
+    - `Q`: Quit Wireworld
+    - `R`: Clear the current world
+    - `P`: Pause or Play the simulation (can draw while paused or playing)
+
+*** Future Additions
+  - [ ] Undo
+  - [ ] Save and load worlds from file
+  - [ ] Increase and decrease speed of simulation
