@@ -34,13 +34,6 @@ proc newGame(renderer: RendererPtr): Game =
 
   result.world = newWorld()
 
-  result.world.get(0, 0) = wire
-  result.world.get(2, 0) = head
-  result.world.get(0, 1) = wire
-  result.world.get(0, 2) = tail
-  result.world.get(1, 2) = head
-  result.world.get(2, 2) = head
-
   newSeq(result.dirty, WorldSize * WorldSize)
   for x in 0..<WorldSize:
     for y in 0..<WorldSize:
