@@ -194,7 +194,6 @@ proc main =
     if not game.paused:
       for tick in lastTick+1 .. newTick:
         game.processWorld()
-        if game.paused:
     lastTick = newTick
 
 if isMainModule:
