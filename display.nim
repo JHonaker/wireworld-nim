@@ -100,8 +100,11 @@ proc handleInput(game: Game) =
       of MouseMotion:
         game.mx = event.motion.x
         game.my = event.motion.y
-        game.tx = event.motion.x div TileSize
-        game.ty = event.motion.y div TileSize
+
+        let tile = screenToWorld(game.mx, game.my)
+        game.tx = tile.x
+        game.ty = tile.y
+
       of MouseButtonDown:
         if event.button.button == BUTTON_LMASK:
           game.inputs[Input.place] = true
