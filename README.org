@@ -37,6 +37,8 @@
 
     Clicking on the map changes the tile under the cursor to the current drawmode's type.
 
+    The info bar at the bottom of the window indicates the currently selected draw mode on the left half, and the paused/play state of the simulation on the right half.
+
     There are four drawing modes, one for each state:
     - =A=: Ground mode
     - =S=: Wire mode
@@ -44,6 +46,8 @@
     - =F=: Electron tail mode
     
     In addition there are a few other keybindings:
+    - =Up=: Increases the speed of the simulation by 1 tick per second (Min: 1, Max: 60)
+    - =Down=: Decreases the speed of the simulation by 1 tick per second
     - =Q=: Quit Wireworld
     - =R=: Clear the current world
     - =P=: Pause or Play the simulation (can draw while paused or playing)
@@ -51,4 +55,3 @@
 *** Future Additions
   - [ ] Undo
   - [ ] Save and load worlds from file
-  - [ ] Increase and decrease speed of simulation
