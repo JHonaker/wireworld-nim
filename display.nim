@@ -7,7 +7,10 @@ const
   MinTicksPerSecond = 1
   MaxTicksPerSecond = 60
   WindowSize = WorldSize * TileSize
+  BottomBarHeight = 1
   black: Color = (0'u8, 0'u8, 0'u8, 255'u8)
+  green: Color = (0'u8, 255'u8, 0'u8, 255'u8)
+  red: Color = (255'u8, 0'u8, 0'u8, 255'u8)
 
 var TicksPerSecond = 10
 
@@ -140,15 +143,16 @@ proc processKeys(game: var Game) =
     game = newGame(game.renderer)
     return
 
+proc drawState(game: Game): State =
+  case game.drawmode:
+    of GroundMode: ground
+    of WireMode: wire
+    of HeadMode: head
+    of TailMode: tail
+
 proc processClicks(game: var Game) =
   if game.inputs[Input.place]:
-    let newstate = case game.drawmode:
-                 of GroundMode: ground
-                 of WireMode: wire
-                 of HeadMode: head
-                 of TailMode: tail
-
-    game.world.get(game.tx, game.ty) = newstate
+    game.world.get(game.tx, game.ty) = game.drawState
 
 template sdlFailIf(cond: typed, reason: string) =
   if cond:
@@ -167,6 +171,41 @@ proc renderTile(game: Game, x, y: int) =
   game.renderer.setDrawColor(black)
   game.renderer.drawRect(tileRect)
 
+proc renderDrawMode(game: Game) =
+  let
+    x = 0
+    y = WorldSize
+    width = WorldSize div 2
+
+  var barRect: Rect = (x: cint(x * TileSize),
+                       y: cint(y * TileSize),
+                       w: cint(width * TileSize),
+                       h: cint(BottomBarHeight * TileSize))
+
+  game.renderer.setDrawColor(game.drawState.color)
+  game.renderer.fillRect(barRect)
+
+
+proc renderPauseState(game: Game) =
+  let
+    x = WorldSize div 2
+    y = WorldSize
+    width = WorldSize div 2
+    color = case game.paused:
+              of true: red
+              of false: green
+  var barRect: Rect = (x: cint(x * TileSize),
+                       y: cint(y * TileSize),
+                       w: cint(width * TileSize),
+                       h: cint(BottomBarHeight * TileSize))
+
+  game.renderer.setDrawColor(color)
+  game.renderer.fillRect(barRect)
+
+proc renderBottomBar(game: Game) =
+  game.renderDrawMode
+  game.renderPauseState
+
 proc renderWorld(game: Game) =
   for x in 0..<WorldSize:
     for y in 0..<WorldSize:
@@ -175,6 +214,7 @@ proc renderWorld(game: Game) =
 proc render(game: Game) =
   game.renderer.clear
   game.renderWorld
+  game.renderBottomBar
   game.renderer.present
 
 proc processWorld(game: Game) = game.world.process
@@ -192,7 +232,7 @@ proc main =
   let window = createWindow(title = "Wireworld",
                             x = SDL_WINDOWPOS_CENTERED,
                             y = SDL_WINDOWPOS_CENTERED,
-                            w = WindowSize, h = WindowSize,
+                            w = WindowSize, h = WindowSize + BottomBarHeight * TileSize,
                                 flags = SDL_WINDOW_SHOWN)
 
   sdlFailIf window.isNil: "Window could not be created."
