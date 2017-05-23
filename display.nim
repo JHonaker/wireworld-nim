@@ -3,15 +3,31 @@ import wireworld
 import times
 
 const
-  TicksPerSecond = 10
   TileSize = 10
+  MinTicksPerSecond = 1
+  MaxTicksPerSecond = 60
   WindowSize = WorldSize * TileSize
   black: Color = (0'u8, 0'u8, 0'u8, 255'u8)
+
+var TicksPerSecond = 10
+
+proc clampSpeedChange(speed, delta: int): int =
+  if speed + delta < 1:
+    result = MinTicksPerSecond
+  elif speed + delta > MaxTicksPerSecond:
+    result = MaxTicksPerSecond
+  else:
+    result = speed + delta
 
 type SDLException = object of Exception
 
 type
-  Input {.pure.} = enum none, reset, exit, groundmode, wiremode, headmode, tailmode, place, pauseplay
+  Input {.pure.} = enum
+    none, reset, exit,
+    groundmode, wiremode, headmode, tailmode,
+    place,
+    pauseplay,
+    speedup, speeddown
 
   DrawMode = enum
     GroundMode,
@@ -67,6 +83,8 @@ proc keyToInput(key: Scancode): Input =
     of SDL_SCANCODE_F: Input.tailmode
     of SDL_SCANCODE_R: Input.reset
     of SDL_SCANCODE_P: Input.pauseplay
+    of SDL_SCANCODE_UP: Input.speedup
+    of SDL_SCANCODE_DOWN: Input.speeddown
     else: Input.none
 
 proc handleInput(game: Game) =
@@ -93,9 +111,15 @@ proc handleInput(game: Game) =
       else:
         discard
 
-proc processMode(game: var Game) =
+proc processKeys(game: var Game) =
   if game.inputs[Input.pauseplay]:
     game.paused = not game.paused
+    return
+  elif game.inputs[Input.speedup]:
+    TicksPerSecond = TicksPerSecond.clampSpeedChange(1)
+    return
+  elif game.inputs[Input.speeddown]:
+    TicksPerSecond = TicksPerSecond.clampSpeedChange(-1)
     return
   elif game.inputs[Input.groundmode]:
     game.drawmode = GroundMode
@@ -188,9 +212,9 @@ proc main =
   while not game.inputs[Input.exit]:
     game.render()
     game.handleInput()
-    game.processMode()
+    game.processKeys()
     game.processClicks()
-    let newTick = int((epochTime() - startTime) * TicksPerSecond)
+    let newTick = int((epochTime() - startTime) * float(TicksPerSecond))
     if not game.paused:
       for tick in lastTick+1 .. newTick:
         game.processWorld()
