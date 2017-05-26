@@ -64,21 +64,7 @@ proc process*(world: var World) =
   var newworld = world
   for x in 0..<WorldSize:
     for y in 0..<WorldSize:
-      # Update the new world 
+      # Update the new world
       newworld.get(x, y) = world.newState(x, y)
   # Update the original with the new states
   world = newworld
-
-if isMainModule:
-  var world = newWorld()
-  world.get(0, 0) = wire
-  world.get(2, 0) = head
-  world.get(0, 1) = wire
-  world.get(0, 2) = tail
-  world.get(1, 2) = head
-  world.get(2, 2) = head
-
-  for _ in 1..10:
-    echo world
-    world.process
-  echo world
