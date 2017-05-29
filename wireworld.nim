@@ -9,10 +9,10 @@ const WorldSize* = 75
 template get*[T](collection: openarray[T], x, y: int): T =
   collection[x + WorldSize * y]
 
-proc newWorld*: World =
+proc newWorld*(state = ground): World =
   newSeq(result, WorldSize * WorldSize)
   for idx in 0..< (WorldSize * WorldSize):
-      result[idx] = ground
+      result[idx] = state
 
 proc `$`*(world: World): string =
   result = ""
