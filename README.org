@@ -33,6 +33,8 @@
 
    This implementation is built in Nim using the SDL 2 library.
 
+   Thanks to GitHub user [[https://github.com/tylorr][tylorr]] for taking it upon himself to make a web frontend for this project as well.
+
 *** Features and Instructions
 
     Clicking on the map changes the tile under the cursor to the current drawmode's type.
@@ -44,7 +46,7 @@
     - =S=: Wire mode
     - =D=: Electron head mode
     - =F=: Electron tail mode
-    
+
     In addition there are a few other keybindings:
     - =Up=: Increases the speed of the simulation by 1 tick per second (Min: 1, Max: 60)
     - =Down=: Decreases the speed of the simulation by 1 tick per second
