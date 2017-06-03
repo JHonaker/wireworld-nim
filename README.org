@@ -6,9 +6,24 @@
 
   I decided to implement another type of cellular automata, [[https://en.wikipedia.org/wiki/Wireworld][Wireworld]], first conceived by Brian Silverman in 1987. The code for this could easily be modified to produce Conway's Game of Life by adjusting the =State= type and the =process(world: ref World)= procedure.
 
+** Build
+**** C target
   Build the project from source by typing =nim c display.nim= into your terminal. You must have Nim installed already, as well as the SDL 2 module. You can install the SDL 2 module by running =nimble install sdl2=.
 
   Run the project by calling =./display= in the appropriate directory.
+  
+  You may need do create a =libSDL2.so= symlink if you get the following error: =could not load: libSDL2.so=
+  
+  =/usr/lib/x86_64-linux-gnu$ ln -s libSDL2-2.0.so.0 libSDL2.so=
+
+**** JavaScript target
+  Nim =0.17.0= is required, it won't build with Nim =0.15.2= (eg. which is the distributed version on the latest Ubuntu, [[https://launchpad.net/~jonathonf/+archive/ubuntu/nimlang/+sourcepub/7822957/+listing-archive-extra][get the 0.17 .deb]])
+  
+  Install html5_canvas: =nimble install html5_canvas=
+  
+  Build the JS: =nim js canvas.nim=
+  
+  Open the webpage: =firefox wireworld.html=
 
 ** Description
 
